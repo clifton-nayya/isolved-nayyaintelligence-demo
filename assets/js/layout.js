@@ -82,7 +82,7 @@
   flyout.innerHTML = `
     <a href="${href('/benefits/benefits-summary.html')}">My Benefits</a>
     <a href="${href('/benefits/enrollment.html')}">Benefit Enrollment</a>
-    <a href="#updates">Updates</a>
+    <a href="${href('/benefits/assistant.html')}">Benefits Assistant</a>
     <a href="${href('/benefits/life-events.html')}">Qualifying Life Events</a>
     <a href="#services">Benefit Services</a>
   `;
@@ -108,7 +108,7 @@
       <div class="subnav-tabs">
         <a class="tab ${activeKey === 'summary' ? 'active' : ''}"     href="${href('/benefits/benefits-summary.html')}">My Benefits</a>
         <a class="tab ${activeKey === 'enrollment' ? 'active' : ''}"  href="${href('/benefits/enrollment.html')}">Benefit Enrollment</a>
-        <a class="tab" href="#updates">Updates</a>
+        <a class="tab ${activeKey === 'assistant' ? 'active' : ''}"   href="${href('/benefits/assistant.html')}">Benefits Assistant</a>
         <a class="tab ${activeKey === 'life-events' ? 'active' : ''}" href="${href('/benefits/life-events.html')}">Qualifying Life Events</a>
         <a class="tab" href="#services">Benefit Services</a>
       </div>

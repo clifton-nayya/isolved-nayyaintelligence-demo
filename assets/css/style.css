@@ -887,6 +887,183 @@ body.has-subnav .main    { margin-top: 104px; }
   .chat-panel-titan .titan-welcome h2 { font-size: 17px; }
 }
 
+/* =============================================================
+   Chat — Fullpage mode (Benefits Assistant page)
+   The chat renders inline into #chat-fullpage instead of floating.
+   Both skins share the host sizing; each skin customizes internals.
+   ============================================================= */
+.chat-fullpage-host {
+  display: block;
+  width: 100%;
+}
+
+/* Fullpage panel: drop fixed positioning, size to content so the page itself
+   scrolls when the conversation grows. Avoid fixed heights so the welcome
+   state and the conversation state both remain fully reachable. */
+.chat-panel.chat-fullpage {
+  position: static;
+  right: auto;
+  bottom: auto;
+  width: 100%;
+  max-height: none;
+  height: auto;
+  min-height: 0;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid var(--border);
+}
+/* Let inner flex regions expand naturally — no internal scrollbars fighting
+   the page scroll. */
+.chat-panel.chat-fullpage .chat-messages,
+.chat-panel-titan.chat-fullpage .titan-messages {
+  overflow: visible;
+  flex: 0 0 auto;
+}
+
+/* Default skin, fullpage: scale up the widget layout. */
+.chat-panel.chat-fullpage:not(.chat-panel-titan) .chat-header {
+  padding: 18px 22px 14px;
+}
+.chat-panel.chat-fullpage:not(.chat-panel-titan) .chat-header .title {
+  font-size: 16px;
+}
+.chat-panel.chat-fullpage:not(.chat-panel-titan) .chat-header .blurb {
+  font-size: 13px;
+}
+.chat-panel.chat-fullpage:not(.chat-panel-titan) .chat-intro {
+  padding: 16px 20px 8px;
+}
+.chat-panel.chat-fullpage:not(.chat-panel-titan) .chat-intro .suggestion {
+  padding: 14px 16px;
+  font-size: 14px;
+}
+.chat-panel.chat-fullpage:not(.chat-panel-titan) .chat-messages {
+  padding: 16px 22px;
+}
+.chat-panel.chat-fullpage:not(.chat-panel-titan) .msg {
+  max-width: 72%;
+  font-size: 14px;
+}
+.chat-panel.chat-fullpage:not(.chat-panel-titan) .chat-input {
+  padding: 14px 18px 16px;
+}
+.chat-panel.chat-fullpage:not(.chat-panel-titan) .chat-input input {
+  font-size: 14px;
+  padding: 11px 16px;
+}
+
+/* Titan skin, fullpage: centered welcome + card grid with thumbnails. */
+.chat-panel-titan.chat-fullpage {
+  padding: 28px 40px 28px;
+}
+.chat-panel-titan.chat-fullpage .titan-welcome {
+  padding: 28px 4px 22px;
+}
+.chat-panel-titan.chat-fullpage .titan-welcome h2 {
+  font-size: 30px;
+  margin-bottom: 10px;
+}
+.chat-panel-titan.chat-fullpage .titan-welcome p {
+  font-size: 14px;
+}
+.chat-panel-titan.chat-fullpage .titan-input {
+  margin: 10px auto 22px;
+  max-width: 760px;
+  width: 100%;
+  padding: 4px 6px 4px 18px;
+}
+.chat-panel-titan.chat-fullpage .titan-input input {
+  font-size: 14px;
+  padding: 11px 0;
+}
+.chat-panel-titan.chat-fullpage .titan-input button {
+  width: 36px; height: 36px;
+}
+
+/* Grid of suggestion cards. */
+.chat-panel-titan.chat-fullpage .titan-suggestions {
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 140px;
+  gap: 16px;
+  max-width: 760px;
+  margin: 0 auto 16px;
+}
+.chat-panel-titan.chat-fullpage .titan-suggestion {
+  background: #F2F2F4;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.25;
+  height: 100%;
+  min-height: 0;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+.chat-panel-titan.chat-fullpage .titan-suggestion:hover {
+  background: #EDEDEF;
+  border-color: rgba(236,44,127,0.35);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  transform: translateY(-1px);
+}
+.chat-panel-titan.chat-fullpage .titan-suggestion.has-thumb .label {
+  flex: 1 1 auto;
+  padding: 10px 12px 10px 16px;
+  color: var(--text);
+  align-self: center;
+}
+.chat-panel-titan.chat-fullpage .titan-suggestion.has-thumb .thumb {
+  flex: 0 0 44%;
+  background: #e6e6e8;
+  overflow: hidden;
+}
+.chat-panel-titan.chat-fullpage .titan-suggestion.has-thumb .thumb img,
+.chat-panel-titan.chat-fullpage .titan-suggestion.has-thumb .thumb svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Started state: once a message is sent, suggestions and welcome vanish,
+   input pins to bottom (inherits from base titan rules). Add some vertical
+   breathing room for messages in the larger layout. */
+.chat-panel-titan.chat-fullpage.started {
+  padding: 18px 32px 22px;
+}
+.chat-panel-titan.chat-fullpage.started .titan-messages {
+  gap: 18px;
+  padding: 8px 4px 12px;
+  max-width: 780px;
+  margin: 0 auto;
+  width: 100%;
+}
+.chat-panel-titan.chat-fullpage.started .titan-input {
+  max-width: 760px;
+  margin: auto auto 6px;
+  width: 100%;
+}
+.chat-panel-titan.chat-fullpage .msg.user {
+  font-size: 14px;
+}
+.chat-panel-titan.chat-fullpage .msg.titan-bot .text {
+  font-size: 14px;
+}
+
+/* Narrow screens: single-column card grid and tighter padding. */
+@media (max-width: 720px) {
+  .chat-panel-titan.chat-fullpage { padding: 20px 18px; }
+  .chat-panel-titan.chat-fullpage .titan-welcome h2 { font-size: 24px; }
+  .chat-panel-titan.chat-fullpage .titan-suggestions {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
 /* ---------------- Responsive side nav ---------------- */
 @media (max-width: 700px) {
   :root { --sidenav-w: 68px; }

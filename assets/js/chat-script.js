@@ -157,13 +157,34 @@ window.CHAT_SCRIPT = {
     }
   ],
 
-  // Titan skin (?embedded) 2x2 grid; no thumbnails.
+  // Titan skin (?embedded) grid.
+  // `thumbnail` SVGs are only surfaced in the fullpage view (chat.js gates on mode);
+  // in the floating widget these are ignored and the tile renders as a single line.
   // Only "current benefits" has a straightforward script match; others hit fallback.
+  // Thumbnail paths are resolved relative to the current benefits page
+  // (/benefits/<page>.html), so `../assets/...` maps to `<BASE>/assets/...`
+  // regardless of the GitHub Pages subpath prefix.
   suggestions_titan: [
-    { label: "What's the difference between HSA and FSA?", value: 'hsa-fsa' },
-    { label: 'Tell me about my current benefits',          value: 'my-benefits' },
-    { label: 'How does parental leave work?',              value: 'parental-leave' },
-    { label: 'What are my retirement plan options?',       value: 'retirement-options' }
+    {
+      label: "What's the difference between HSA and FSA?",
+      value: 'hsa-fsa',
+      thumbnail: '<img src="../assets/img/thumbnails/hsa_fsa_family-Bd0mNo_9.webp" alt="" loading="lazy">'
+    },
+    {
+      label: 'Tell me about my current benefits',
+      value: 'my-benefits',
+      thumbnail: '<img src="../assets/img/thumbnails/current_benefits_man_dog-BCJDbCvK.webp" alt="" loading="lazy">'
+    },
+    {
+      label: 'How does parental leave work?',
+      value: 'parental-leave',
+      thumbnail: '<img src="../assets/img/thumbnails/parental_leave_hands-CXFJe7a7.webp" alt="" loading="lazy">'
+    },
+    {
+      label: 'What are my retirement plan options?',
+      value: 'retirement-options',
+      thumbnail: '<img src="../assets/img/thumbnails/retirement_couple_dog-CVXv5lh6.webp" alt="" loading="lazy">'
+    }
   ],
 
   flows: {

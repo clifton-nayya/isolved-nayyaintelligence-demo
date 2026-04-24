@@ -1,14 +1,19 @@
 /**
  * Benefits Assistant chat widget.
  *
- * - Injected only on pages under /benefits/.
- * - Persists messages + open state in sessionStorage so navigation
- *   between /benefits/* pages keeps the chat intact.
- * - Two skins:
- *     default  → original isolved pink widget
- *     titan    → activated via ?embedded= in the URL
- *   A toggle button in the chat switches skins seamlessly (updates
- *   the URL and re-renders in place while preserving state).
+ * - Runs on pages under /benefits/.
+ * - Two display modes:
+ *     widget    → floating bottom-right launcher + panel (default)
+ *     fullpage  → rendered inline into a page's #chat-fullpage container
+ *                 (used on the Benefits Assistant page). No launcher,
+ *                 always visible, takes the content area.
+ * - Two skins (independent of mode):
+ *     default  → isolved pink
+ *     titan    → activated via ?embedded query param
+ *   A toggle in the chat header switches skins seamlessly.
+ * - State (messages + skin) is shared across both modes via sessionStorage,
+ *   so a conversation started in the widget continues in fullpage and vice
+ *   versa.
  * - Responses are driven by window.CHAT_SCRIPT (see chat-script.js).
  */
 
@@ -20,6 +25,12 @@
   const SKIN_KEY = 'nayya_chat_skin_v1';
   const URL_PARAM = 'embedded';
 
+  // ----- Mode (which host on the page) -----
+  // If the page provides a #chat-fullpage container, render inline there and
+  // skip the floating widget. Otherwise default to the widget.
+  function findFullpageHost() { return document.getElementById('chat-fullpage'); }
+  let mode = findFullpageHost() ? 'fullpage' : 'widget';
+
   // ----- Skin (URL is shareable source of truth; sessionStorage persists
   //        the preference across page navigation within the same tab) -----
   function readSkin() {
@@ -28,7 +39,6 @@
     let stored = null;
     try { stored = sessionStorage.getItem(SKIN_KEY); } catch (e) {}
     if (stored === 'titan') {
-      // Reflect the carried-over skin back into the URL so sharing works.
       writeSkinToUrl('titan');
       return 'titan';
     }
@@ -60,7 +70,7 @@
     try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
   }
 
-  // ----- DOM refs (rebuilt on skin switch) -----
+  // ----- DOM refs -----
   let launcher, panel;
   let introEl, messagesEl, form, input;
 
@@ -71,17 +81,24 @@
   function destroyUI() {
     if (launcher && launcher.parentNode) launcher.parentNode.removeChild(launcher);
     if (panel && panel.parentNode) panel.parentNode.removeChild(panel);
+    launcher = null;
+    panel = null;
   }
 
   function buildUI() {
     destroyUI();
-    buildLauncher();
+    if (mode === 'widget') buildLauncher();
     buildPanel();
     renderAll();
     applyOpenState();
   }
 
   function applyOpenState() {
+    if (mode === 'fullpage') {
+      // Fullpage is always visible; widget open/close doesn't apply.
+      if (panel) panel.style.display = 'flex';
+      return;
+    }
     if (!launcher || !panel) return;
     if (state.open) {
       panel.style.display = 'flex';
@@ -92,7 +109,7 @@
     }
   }
 
-  // ----- Launcher -----
+  // ----- Launcher (widget only) -----
   function buildLauncher() {
     launcher = document.createElement('button');
     launcher.className = 'chat-launcher';
@@ -105,6 +122,13 @@
   const SWAP_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3l5 5-5 5"/><path d="M21 8H8"/><path d="M8 21l-5-5 5-5"/><path d="M3 16h13"/></svg>';
   const SEND_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 5l7 7-7 7"/></svg>';
 
+  // Close button is omitted in fullpage mode (the chat IS the page content).
+  function closeBtnHtml() {
+    return mode === 'fullpage'
+      ? ''
+      : '<button class="close" data-chat-close aria-label="Close">&times;</button>';
+  }
+
   function defaultTemplate() {
     return `
       <div class="chat-header">
@@ -115,7 +139,7 @@
         </div>
         <div class="controls">
           <button class="skin-toggle" data-skin-toggle title="Switch to embedded skin" aria-label="Switch skin">${SWAP_ICON}</button>
-          <button class="close" data-chat-close aria-label="Close">&times;</button>
+          ${closeBtnHtml()}
         </div>
       </div>
       <div class="chat-intro" data-chat-intro></div>
@@ -133,27 +157,37 @@
     return `
       <div class="titan-controls">
         <button class="skin-toggle" data-skin-toggle title="Switch to default skin" aria-label="Switch skin">${SWAP_ICON}</button>
-        <button class="close" data-chat-close aria-label="Close">&times;</button>
+        ${closeBtnHtml()}
       </div>
       <div class="titan-welcome">
         <h2>Welcome John.<br>How can I help you today?</h2>
         <p>Your personalized health and wealth journey starts here. Ask me anything related to benefits or take action on what matters most.</p>
       </div>
       <div class="titan-messages" data-chat-messages></div>
-      <div class="titan-suggestions" data-chat-intro></div>
       <form class="titan-input" data-chat-form autocomplete="off">
         <input type="text" data-chat-input placeholder="Type your message..." />
         <button type="submit" aria-label="Send">${SEND_ICON}</button>
       </form>
+      <div class="titan-suggestions" data-chat-intro></div>
     `;
   }
 
   function buildPanel() {
     panel = document.createElement('div');
-    panel.className = 'chat-panel' + (skin === 'titan' ? ' chat-panel-titan' : '');
+    const classes = ['chat-panel'];
+    if (skin === 'titan') classes.push('chat-panel-titan');
+    if (mode === 'fullpage') classes.push('chat-fullpage');
+    panel.className = classes.join(' ');
     panel.style.display = 'none';
     panel.innerHTML = skin === 'titan' ? titanTemplate() : defaultTemplate();
-    document.body.appendChild(panel);
+
+    if (mode === 'fullpage') {
+      const host = findFullpageHost();
+      host.innerHTML = '';
+      host.appendChild(panel);
+    } else {
+      document.body.appendChild(panel);
+    }
 
     introEl = panel.querySelector('[data-chat-intro]');
     messagesEl = panel.querySelector('[data-chat-messages]');
@@ -176,11 +210,12 @@
     saveSkinPref(skin);
     applyBodySkinClass();
     buildUI();
-    // keep focus on input after swap if open
-    if (state.open && input) setTimeout(() => input.focus(), 30);
+    if (input && (mode === 'fullpage' || state.open)) {
+      setTimeout(() => input.focus(), 30);
+    }
   }
 
-  // ----- Open / close -----
+  // ----- Open / close (widget only) -----
   function openChat() {
     state.open = true;
     saveState();
@@ -222,7 +257,17 @@
       const btn = document.createElement('button');
       if (skin === 'titan') {
         btn.className = 'titan-suggestion';
-        btn.textContent = s.label;
+        // Thumbnails only surface in the fullpage layout (widget is too
+        // narrow to do them justice, per spec).
+        if (mode === 'fullpage' && s.thumbnail) {
+          btn.classList.add('has-thumb');
+          btn.innerHTML = `
+            <span class="label">${escapeHtml(s.label)}</span>
+            <span class="thumb" aria-hidden="true">${s.thumbnail}</span>
+          `;
+        } else {
+          btn.textContent = s.label;
+        }
       } else {
         btn.className = 'suggestion';
         const defaultIcon = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>';
@@ -355,6 +400,7 @@
     close: closeChat,
     toggleSkin,
     skin: () => skin,
+    mode: () => mode,
     reset() {
       state = { ...defaultState };
       saveState();
